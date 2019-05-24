@@ -43,10 +43,34 @@
 		(with-standard-io-syntax
 			(setf *db* (read in)))))
 
+(defun select-by-artist (artist)
+	(remove-if-not #'(lambda (cd) (equal (getf cd :artist) artist)) 
+		*db*))
+
+(defun select (selector-fn)
+	(remove-if-not selector-fn *db*))
+
+
+(defun artist-selector (artist)
+	#'(lambda (cd) (equal (getf cd :artist) artist)))
+
 (add-cds)
 
 (save-db "./songs.db")
 
 (load-db "./songs.db")
 
-(dump-db)
+
+(format t "~a~%" (select #'(lambda (cd) (equal (getf cd :artist) "kk"))))
+
+(format t "~a~%" (select (artist-selector "kk")))
+
+(defun where (&key title artist rating (ripped nil ripped-p))
+	#'(lambda (cd)
+			(and
+				(if title (equal (getf cd :title) title) t)
+				(if artist (equal (getf cd :artist) artist) t)
+				(if rating (equal (getf cd :rating) rating) t)
+				(if ripped-p (equal (getf cd :ripped) ripped) t))))
+
+(format t "where => ~% ~a ~%" (select (where :title "kk")))
