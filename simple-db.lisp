@@ -74,3 +74,27 @@
 				(if ripped-p (equal (getf cd :ripped) ripped) t))))
 
 (format t "where => ~% ~a ~%" (select (where :title "kk")))
+
+(defun update (selector-fn &key title artist rating (ripped nil ripped-p))
+	(setf *db* 
+		(mapcar 
+			#'(lambda (row) 
+					(when (funcall selector-fn row)
+						(if title (setf (getf row :title) title))
+						(if artist (setf (getf row :artist) artist))
+						(if rating (setf (getf row :rating) rating))
+						(if ripped (setf (getf row :ripped) ripped))) 
+					row) *db*)))
+
+(update (where :title "kk") :rating 88)
+
+(format t "after where => ~% ~a" (select (where :title "kk")))
+
+(save-db "./songs.db")
+
+(defun del-row (selector-fn)
+	(setf *db* (remove-if selector-fn *db*)))
+
+(del-row (where :title "kk"))
+
+(dump-db)
